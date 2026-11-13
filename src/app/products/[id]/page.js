@@ -11,7 +11,7 @@ async function ProductDetails({ productId }) {
     try {
         product = await apiRequest(`/products/${productId}`);
     } catch (err) {
-        error = err.message;
+        error = err instanceof Error ? err.message : "Something went wrong";
     }
 
     if (error) {
@@ -34,8 +34,7 @@ async function ProductDetails({ productId }) {
     const productName =
         englishDetails.name || product.model || "Product Details";
 
-    const price =
-        product.calculated_price ?? product.base_price;
+    const price = product.calculated_price ?? product.base_price;
 
     return (
         <div className="rounded-xl bg-white p-6 shadow-sm">
@@ -44,7 +43,9 @@ async function ProductDetails({ productId }) {
             </h1>
 
             <p className="mt-3 text-xl font-bold text-blue-600">
-                {price != null ? `${price} ${product.currency || ""}` : "Price unavailable"}
+                {price != null
+                    ? `${price} ${product.currency || ""}`
+                    : "Price unavailable"}
             </p>
 
             <p className="mt-2 text-sm text-gray-500">
@@ -92,7 +93,10 @@ async function ProductDetails({ productId }) {
 
                 <p className="mt-3 text-gray-600">
                     {englishDetails.description
-                        ? englishDetails.description.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim()
+                        ? englishDetails.description
+                            .replace(/<[^>]*>/g, " ")
+                            .replace(/\s+/g, " ")
+                            .trim()
                         : "No description available."}
                 </p>
             </div>
@@ -100,10 +104,15 @@ async function ProductDetails({ productId }) {
     );
 }
 
-// Product Details Page
+// Resolve dynamic params and fetch product
 async function ProductPageContent({ params }) {
     const { id } = await params;
 
+    return <ProductDetails productId={id} />;
+}
+
+// Product Details Page
+export default function ProductDetailsPage({ params }) {
     return (
         <main className="min-h-screen bg-gray-50">
             <header className="bg-white shadow-sm">
@@ -129,13 +138,9 @@ async function ProductPageContent({ params }) {
                         </div>
                     }
                 >
-                    <ProductDetails productId={id} />
+                    <ProductPageContent params={params} />
                 </Suspense>
             </section>
         </main>
     );
-}
-
-export default function ProductDetailsPage({ params }) {
-    return <ProductPageContent params={params} />;
 }
